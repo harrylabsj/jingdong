@@ -1,9 +1,9 @@
 ---
 name: Jingdong Shopping
 slug: jingdong
-version: 1.1.0
+version: 2.0.0
 homepage: https://clawic.com/skills/jingdong
-description: Navigate JD.com (京东) with expert shopping strategies, authenticity checks, logistics optimization, and browser-based product/cart/coupon checks.
+description: Navigate JD.com (京东) with expert shopping strategies, authenticity checks, logistics optimization, and browser-based product search, reviews, price comparison, and cart operations. Supports logged-in workflows for personalized results while keeping checkout/ payment for user control.
 metadata:
   clawdbot:
     emoji: "📦"
@@ -32,6 +32,22 @@ When the task requires live JD page inspection, follow the shared **browser-comm
 - re-snapshot after region switch, coupon reveal, or SKU changes
 - capture store type and logistics promise as first-class evidence
 
+### Supported Operations (v2.0)
+
+| Operation | Auth Required | Description |
+|-----------|---------------|-------------|
+| **Search** | Optional | Search products, filter by price/rating/brand |
+| **Product Detail** | Optional | View specs, images, pricing, promotions |
+| **Reviews** | Optional | Read user reviews, ratings, photos |
+| **Price Compare** | Optional | Compare prices across sellers/variants |
+| **Add to Cart** | ✅ Required | Add items to shopping cart |
+| **View Cart** | ✅ Required | Review cart contents, quantities |
+| **Apply Coupons** | ✅ Required | Check and apply available coupons |
+| **Generate Order** | ✅ Required | Fill address, select shipping, calculate final price |
+| **Payment** | ❌ Blocked | User must complete payment manually |
+
+**Important**: All checkout operations stop before payment. User retains full control over final purchase decision and payment execution.
+
 Key browser extraction order on JD:
 - 商品标题
 - 京东价 / PLUS价 / 到手价
@@ -39,6 +55,7 @@ Key browser extraction order on JD:
 - 物流时效 / 配送承诺
 - 优惠券 / 满减 / 补贴
 - 规格切换后的价格刷新
+- 用户评价 / 好评率 / 晒单图片
 
 ## Core Rules
 
@@ -138,7 +155,40 @@ Final Price = 京东价 - 店铺券 - 平台券 - PLUS折扣 - 支付优惠
 - Photo confirmation
 - Delivery time prediction
 
-### 6. Smart Shopping Workflow
+### 6. Smart Shopping Workflow (Agent-Assisted v2.0)
+
+#### Phase 1: Discovery (Agent-Assisted)
+1. **Search** - Agent searches JD for target product
+2. **Filter & Sort** - Apply filters (price range, rating, brand, 自营 only)
+3. **Compare** - Agent compares top 3-5 options across stores
+4. **Reviews** - Agent reads user reviews, extracts common pros/cons
+5. **Price Analysis** - Agent checks current price, promotions, coupon stackability
+
+#### Phase 2: Selection (Agent-Assisted)
+1. **Product Detail** - Agent opens selected product page
+2. **Variant Selection** - Confirm color, size, configuration
+3. **Seller Verification** - Confirm 自营/旗舰店 status
+4. **Final Price Check** - Calculate 到手价 after all discounts
+
+#### Phase 3: Cart & Pre-Order (Agent-Assisted with Login)
+1. **Add to Cart** - Agent adds item to cart (requires login)
+2. **Cart Review** - Agent shows cart contents, quantities, subtotal
+3. **Coupon Application** - Agent checks and applies best coupons
+4. **Address Selection** - Agent confirms delivery address
+5. **Shipping Options** - Agent shows available delivery methods
+6. **Order Summary** - Agent generates complete order preview
+
+#### Phase 4: Checkout (User-Controlled)
+1. **Handoff** - Agent presents final order details
+2. **User Review** - User confirms all details are correct
+3. **Payment** - ⚠️ **User completes payment manually**
+4. **Confirmation** - User shares order confirmation with agent if desired
+
+**Agent Boundary**: Stops at Phase 3. Never executes payment or final order submission.
+
+---
+
+#### Legacy Workflow (for reference)
 
 **Before Purchase:**
 1. Check if 自营 available
@@ -178,6 +228,107 @@ Final Price = 京东价 - 店铺券 - 平台券 - PLUS折扣 - 支付优惠
 - Must be same product, same seller
 - Refund difference to original payment
 
+## Agent Execution Guide
+
+### When User Says "帮我买..."
+
+Follow this escalation path:
+
+```
+User: "帮我买 Mac mini"
+  ↓
+Step 1: Confirm Intent
+  "我来帮你搜索 Mac mini，对比选项，加入购物车。
+   最后需要你确认订单并完成支付。可以吗？"
+  ↓
+Step 2: Discovery Phase (No login required)
+  - Search JD for "Mac mini M4"
+  - Filter: 自营/旗舰店, sort by rating
+  - Compare top 3 options
+  - Read reviews for each
+  - Present comparison table
+  ↓
+Step 3: Selection Phase (No login required)
+  - User picks one option
+  - Agent opens product page
+  - Confirm variant/specs
+  - Show final price
+  ↓
+Step 4: Cart Phase (⚠️ Requires login)
+  "接下来需要登录你的京东账号才能加入购物车，
+   请确认是否继续？"
+  - If yes: proceed with browser automation
+  - If no: provide manual instructions
+  ↓
+Step 5: Order Generation (Requires login)
+  - Add to cart
+  - Apply coupons
+  - Select address
+  - Calculate final price
+  - Generate order preview
+  ↓
+Step 6: Handoff (User-controlled)
+  "订单已准备好，请检查：
+   [订单详情摘要]
+   
+   👉 请手动完成支付：
+   1. 打开京东 App
+   2. 进入购物车
+   3. 点击结算
+   4. 确认地址和优惠券
+   5. 提交订单并支付"
+```
+
+### Browser Automation Rules
+
+**Always announce before action:**
+- "正在搜索..."
+- "正在打开商品页面..."
+- "正在读取用户评价..."
+- "正在加入购物车..."
+
+**Snapshot key information:**
+- Product title, price, promotions
+- Store type badge
+- Rating and review count
+- Available variants
+- Coupon information
+- Delivery estimate
+
+**Stop conditions:**
+- Before any payment screen
+- When CAPTCHA appears (hand to user)
+- When login is required (ask first)
+- When price differs significantly from expected
+
+### Login Handling
+
+**Option A: User already logged in (Chrome profile)**
+```
+openclaw browser navigates to JD
+If user profile has active session → proceed
+If session expired → prompt user to login manually first
+```
+
+**Option B: User provides login via secure method**
+```
+⚠️ Never ask for password in chat
+Guide user to login in their browser first
+Then agent takes over with active session
+```
+
+**Option C: Manual mode (no login)**
+```
+Agent provides:
+- Exact search keywords
+- Product links
+- Coupon codes to apply
+- Step-by-step manual instructions
+User executes manually
+```
+
+---
+
 ## Common Traps
 
 - **Assuming JD = always authentic** → Check store type first
@@ -187,6 +338,7 @@ Final Price = 京东价 - 店铺券 - 平台券 - PLUS折扣 - 支付优惠
 - **Buying from new sellers** → Higher risk, less protection
 - **Forgetting price protection** → Free money left behind
 - **Rushing electronics activation** → Test first, activate later
+- **Agent overstepping** → Never complete payment for user
 
 ## JD vs Competitors
 
