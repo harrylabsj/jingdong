@@ -1,9 +1,6 @@
 ---
-name: Jingdong Shopping
-slug: jingdong
-version: 2.0.0
-homepage: https://clawic.com/skills/jingdong
-description: Navigate JD.com (京东) with expert shopping strategies, authenticity checks, logistics optimization, and browser-based product search, reviews, price comparison, and cart operations. Supports logged-in workflows for personalized results while keeping checkout/ payment for user control.
+name: jingdong
+description: "Redirect: Jingdong has been merged into jd-shopping. Install and use jd-shopping for JD.com search, review checks, price comparison, SKU selection, and safe cart preparation. This legacy slug exists only to route users to the maintained JD Shopping skill."
 metadata:
   clawdbot:
     emoji: "📦"
@@ -11,6 +8,33 @@ metadata:
       bins: []
     os: ["linux", "darwin", "win32"]
 ---
+
+# Jingdong Redirect
+
+`jingdong` has been merged into the maintained `jd-shopping` skill.
+
+Use `jd-shopping` for JD.com search, self-operated store checks, review analysis, price comparison, SKU selection, and cart preparation. Keep using this legacy skill only when the user explicitly asks for the old `jingdong` slug; immediately route them to install or use `jd-shopping`.
+
+## Redirect Target
+
+- Target skill: `jd-shopping`
+- Reason: avoid two independent JD shopping products competing for the same installs.
+- User promise: product name or JD link -> self-operated/flagship checks, visible price, review risks, SKU advice, and cart-ready summary.
+- Safety boundary: the agent never logs in for the user and never clicks checkout, final order submission, payment, bank, wallet, or payment-provider controls.
+
+## Trigger Keywords
+
+京东 / Jingdong / JD / JD.com / 京东自营 / 京东比价 / 查京东评价 / 京东购物
+
+## Handoff Text
+
+```text
+这个旧入口已经合并到 `jd-shopping`。请安装或调用 `jd-shopping`，它覆盖京东搜索、查自营、看评论、比价、选规格和购物车准备；登录、结算、确认订单和支付仍由你手动完成。
+```
+
+## Legacy Reference
+
+The previous standalone guidance below is retained only for search continuity. Prefer `jd-shopping` for all active work.
 
 ## When to Use
 
