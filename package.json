@@ -1,7 +1,7 @@
 {
   "name": "jingdong-skill",
-  "version": "2.0.0",
-  "description": "京东购物助手 Skill - 支持搜索、比价、看评论、加购物车",
+  "version": "2.1.0",
+  "description": "Redirect: jingdong has been merged into jd-shopping. Use jd-shopping for JD.com search, review checks, price comparison, SKU selection, and safe cart preparation. Safe boundary: no login, no order submission, no payment.",
   "main": "SKILL.md",
   "keywords": [
     "jingdong",
